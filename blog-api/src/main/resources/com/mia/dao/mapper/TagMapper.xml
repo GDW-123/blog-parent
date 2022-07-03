@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--MyBatis配置文件-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mia.dao.mapper.TagMapper">
+
+<!--根据文章id查询标签列表-->
+<select id="findTagsByArticleId" parameterType="long" resultType="com.mia.dao.pojo.Tag">
+    select id,avatar,tag_name as tagName from ms_tag
+    where id in
+          (select tag_id from ms_article_tag where article_id = #{articleId})
+</select>
+
+<!--查询最热的标签，前limit条-->
+<select id="findHotsTagIds" parameterType="int" resultType="java.lang.Long">
+    select tag_id from `ms_article_tag` group by tag_id order by count(*) desc limit #{limit}
+</select>
+
+<!--通过上一步获得的id来查询具体的标签对象-->
+<select id="findTagsByTagIds" parameterType="list" resultType="com.mia.dao.pojo.Tag">
+    select id,tag_name as tagName from ms_tag
+    where id in
+    <foreach collection="tagIds" item="tagId" separator="," open="(" close=")">
+        #{tagId}
+    </foreach>
+</select>
+</mapper>

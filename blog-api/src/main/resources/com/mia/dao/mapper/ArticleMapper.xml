@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--MyBatis配置文件-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mia.dao.mapper.ArticleMapper">
+
+    <!--请求映射，用来解决主体类的属性字段名和数据库的字段名对应不上的问题-->
+    <resultMap id="articleMap" type="com.mia.dao.pojo.Article">
+
+        <id column="id" property="id" />
+        <!--column表示数据库的字段名，property表示主体类的属性字段名-->
+        <result column="author_id" property="authorId"/>
+        <result column="comment_counts" property="commentCounts"/>
+        <result column="create_date" property="createDate"/>
+        <result column="summary" property="summary"/>
+        <result column="title" property="title"/>
+        <result column="view_counts" property="viewCounts"/>
+        <result column="weight" property="weight"/>
+        <result column="body_id" property="bodyId"/>
+        <result column="category_id" property="categoryId"/>
+    </resultMap>
+
+
+    <select id="listArchives" resultType="com.mia.dao.dos.Archives">
+        select FROM_UNIXTIME(create_date/1000,'%Y') as year, FROM_UNIXTIME(create_date/1000,'%m') as month,count(*) as count from ms_article group by year,month
+    </select>
+
+
+    <!--mybatis的常用标签
+        select，insert，delete，update，resultMap，if， foreach，choose，where，include（标签用于引用定义的常量）
+    -->
+    <!--为了避免sql语句出现问题写了1=1-->
+    <!---->
+    <select id="listArticle" resultMap="articleMap">
+        select * from ms_article
+        <where>
+            1 = 1
+            <if test="categoryId != null">
+                and  category_id = #{categoryId}
+            </if>
+            <if test="year != null and year.length>0 and month != null and month.length>0">
+                and ( FROM_UNIXTIME(create_date/1000,'%Y') = #{year} and FROM_UNIXTIME(create_date/1000,'%m') = #{month} )
+            </if>
+            <if test="tagId != null">
+                and id in (select article_id from ms_article_tag where tag_id=#{tagId})
+            </if>
+        </where>
+        order by create_date desc
+    </select>
+</mapper>
